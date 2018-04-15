@@ -480,7 +480,7 @@ export class CortadoPath {
    * Creates an instance of CortadoPath.
    * @param {any} path The path to create.
    * @param {any} [options={}]
-   * @memberof CortadoPath
+   * @memberof CortadoPath 
    */
   constructor(options = {}) {
     if (options.path === undefined || options.path === null) {

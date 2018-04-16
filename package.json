@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "A path parsing library for espresso that isn't weird, and that behaves right.",
   "main": "cortado.js",
-  "dependencies": {},
+  "dependencies": {
+    "punycode": "^2.1.0"
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
@@ -23,7 +25,9 @@
     "roots": [
       "tests"
     ],
+    "collectCoverage": true,
     "collectCoverageFrom": [
+      "*.{js,jsx}",
       "**/*.{js,jsx}",
       "!**/node_modules/**",
       "!**/vendor/**"

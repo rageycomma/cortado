@@ -1,11 +1,23 @@
-import { METHODS } from 'http';
+import * as punycode from 'punycode';
 import { CortadoInvalidPathError } from './cortado.errors';
+
 /**
  * The options set on the cordado object.
  *
  * @class CortadoOptions
  */
 export class CortadoOptions {
+  /**
+   * Get the regex for ASCII.
+   *
+   * @readonly
+   * @static
+   * @memberof CortadoOptions
+   */
+  static get nonAsciiRegex() {
+    return new RegExp('[^\u0000-\u007F]'); // eslint-disable-line no-control-regex
+  }
+
   /**
      * The path delimeter.
      *
@@ -100,6 +112,28 @@ export class CortadoOptions {
   }
 
   /**
+   * Getter for path.
+   *
+   * @memberof CortadoOptions
+   */
+  get path() {
+    return this.Path;
+  }
+
+  /**
+   * Setter for path.
+   *
+   * @memberof CortadoOptions
+   */
+  set path(path) {
+    if (CortadoOptions.nonAsciiRegex.test(path)) {
+      this.Path = punycode.toASCII(path);
+    } else {
+      this.Path = path;
+    }
+  }
+
+  /**
      * Creates an instance of CortadoOptions.
      * @param {any} options The options to provide.
      * @memberof CortadoOptions
@@ -124,7 +158,7 @@ export class CortadoPath {
   static get defaultPathParam() {
     return {
       type: 'string',
-      value: '([\w]+)',
+      value: '([\w]+)', // eslint-disable-line no-useless-escape
     };
   }
 
@@ -180,7 +214,7 @@ export class CortadoPath {
    * @memberof CortadoPath
    */
   static get latLongRegex() {
-    return '[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)';
+    return '[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)'; // eslint-disable-line no-useless-escape
   }
 
 
@@ -272,7 +306,7 @@ export class CortadoPath {
    */
   getPathParameters(path) {
     const pattern = new RegExp(
-      `${this.Options.parameterPrefix}([a-zA-Z0-9_\-~.]+)${this.Options.parameterSuffix || ''}`,
+      `${this.Options.parameterPrefix}([a-zA-Z0-9_\-~.]+)${this.Options.parameterSuffix || ''}`, // eslint-disable-line no-useless-escape
       'ig',
     );
 
@@ -280,7 +314,7 @@ export class CortadoPath {
     let match = '';
     const result = [];
 
-    while (match = pattern.exec(path)) {
+    while (match = pattern.exec(path)) { // eslint-disable-line no-cond-assign
       result.push(match[1]);
     }
 
@@ -346,7 +380,8 @@ export class CortadoPath {
             delete thisFormat[format].maxlength;
           }
         }
-        if (minlength !== null && maxlength !== null && minlength !== undefined && maxlength !== undefined) {
+        if (minlength !== null && maxlength !== null
+          && minlength !== undefined && maxlength !== undefined) {
           thisFormat.value = `${CortadoPath.stringRegex}{${minlength},${maxlength}}`;
         }
         objectFormat[format] = thisFormat;
@@ -385,19 +420,19 @@ export class CortadoPath {
         if (value === null || value === undefined) {
           thisFormat.value = CortadoPath.uuidV3Regex;
 
-          if (thisFormat.version === 'v1') {
+          if (version === 'v1') {
             thisFormat.value = CortadoPath.uuidV1Regex;
           }
-          if (thisFormat.version === 'v2') {
+          if (version === 'v2') {
             thisFormat.value = CortadoPath.uuidV2Regex;
           }
-          if (thisFormat.version === 'v3') {
+          if (version === 'v3') {
             thisFormat.value = CortadoPath.uuidV3Regex;
           }
-          if (thisFormat.version === 'v4') {
+          if (version === 'v4') {
             thisFormat.value = CortadoPath.uuidV4Regex;
           }
-          if (thisFormat.version === 'v5') {
+          if (version === 'v5') {
             thisFormat.value = CortadoPath.uuidV5Regex;
           }
         }
@@ -417,7 +452,7 @@ export class CortadoPath {
    * @memberof CortadoPath
    */
   createPathRegex() {
-    let regexText = this.IncomingPath;
+    let regexText = punycode.toASCII(this.IncomingPath);
 
     // Get the keys.
     Object.keys(this.PathFormats).forEach((format) => {
@@ -467,20 +502,21 @@ export class CortadoPath {
 
   /**
    * Match the path.
-   * 
-   * @param {string} path Match the path. 
-   * @returns 
+   *
+   * @param {string} path Match the path.
+   * @returns
    * @memberof CortadoPath
    */
   match(path) {
-    return this.pathRegex.test(path);
+    const encoded = punycode.toASCII(path);
+    return this.pathRegex.test(encoded);
   }
 
   /**
    * Creates an instance of CortadoPath.
    * @param {any} path The path to create.
    * @param {any} [options={}]
-   * @memberof CortadoPath 
+   * @memberof CortadoPath
    */
   constructor(options = {}) {
     if (options.path === undefined || options.path === null) {
